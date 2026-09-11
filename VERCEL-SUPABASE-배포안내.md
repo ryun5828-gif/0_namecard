@@ -14,6 +14,6 @@
 추후 Supabase 기능을 연결할 때 Vercel의 Project Settings > Environment Variables에 아래 값을 등록합니다.
 
 - `NEXT_PUBLIC_SUPABASE_URL`: Supabase 프로젝트 URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase 공개 anon 키
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: Supabase 공개 publishable 키
 
 `.env.example`에는 실제 키를 넣지 마세요. 서비스 역할 키(`service_role`)는 브라우저에 공개되는 `NEXT_PUBLIC_` 변수로 등록하면 안 됩니다.
