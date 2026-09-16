@@ -10,15 +10,22 @@ import FigmaOdysseyPanoramaLayers from "./StaticFigmaSchoolScene";
 import { projects, type Project } from "@/lib/projects";
 
 const zones = ["ORIGIN", "ODYSSEY", "ABOUT", "WORKS", "CONTACT"];
+const EMAIL = "ryun5828@gmail.com";
+const contactPapers = [
+  { src: "/images/contact-paper-01.png", rotation: -12 },
+  { src: "/images/contact-paper-02.png", rotation: 8 },
+  { src: "/images/contact-paper-03.png", rotation: -6 },
+  { src: "/images/contact-paper-04.png", rotation: 11 },
+  { src: "/images/contact-paper-05.png", rotation: -2 },
+];
 const clamp = (n: number, low = 0, high = 1) => Math.min(high, Math.max(low, n));
 const smooth = (n: number) => { const t = clamp(n); return t * t * (3 - 2 * t); };
-// Replace this placeholder with your real address before publishing.
-const EMAIL = "hello@example.com";
 
 export default function HorizontalStream() {
   const viewport = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLDivElement>(null);
   const progressBar = useRef<HTMLDivElement>(null);
+  const contactRef = useRef<HTMLElement>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
   const viewerReturnY = useRef(0);
   const trigger = useRef<ScrollTrigger | null>(null);
@@ -174,6 +181,98 @@ export default function HorizontalStream() {
     };
   }, []);
 
+  useLayoutEffect(() => {
+    const contact = contactRef.current;
+    if (!contact) return;
+
+    const paperElements = Array.from(contact.querySelectorAll<HTMLElement>(".contact-paper-piece"));
+    const paperStates = paperElements.map((element) => ({
+      element,
+      x: 0,
+      y: 0,
+      rotation: 0,
+      baseRotation: Number(element.dataset.rotation ?? 0),
+    }));
+    let frame = 0;
+    let pointerX = 0;
+    let pointerY = 0;
+
+    const pushPapers = () => {
+      frame = 0;
+      const contactRect = contact.getBoundingClientRect();
+      const radius = Math.max(190, Math.min(contactRect.width, contactRect.height) * 0.34);
+      const maxX = contactRect.width * 0.62;
+      const maxY = contactRect.height * 0.58;
+      let totalMovement = 0;
+
+      paperStates.forEach((paper, index) => {
+        const rect = paper.element.getBoundingClientRect();
+        let dx = rect.left + rect.width / 2 - pointerX;
+        let dy = rect.top + rect.height / 2 - pointerY;
+        let distance = Math.hypot(dx, dy);
+        if (distance < 1) {
+          dx = index % 2 === 0 ? -1 : 1;
+          dy = -0.75;
+          distance = Math.hypot(dx, dy);
+        }
+
+        if (distance < radius) {
+          const proximity = 1 - distance / radius;
+          const force = Math.pow(proximity, 1.12) * 38 + proximity * 8;
+          const unitX = dx / distance;
+          const unitY = dy / distance;
+          paper.x = clamp(paper.x + unitX * force, -maxX, maxX);
+          paper.y = clamp(paper.y + unitY * force, -maxY, maxY);
+          paper.rotation = clamp(
+            paper.rotation + (unitX * 2.4 + unitY * 1.05) * proximity,
+            -24,
+            24,
+          );
+          paper.element.style.transform = `translate3d(${paper.x}px, ${paper.y}px, 0) rotate(${paper.baseRotation + paper.rotation}deg)`;
+          paper.element.style.zIndex = String(20 + index);
+        }
+        totalMovement += Math.hypot(paper.x, paper.y);
+      });
+
+      const reveal = clamp(totalMovement / (paperStates.length * 105), 0, 1);
+      contact.style.setProperty("--copy-reveal", String(0.62 + reveal * 0.38));
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (event.pointerType === "touch" && !event.isPrimary) return;
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+      if (!frame) frame = window.requestAnimationFrame(pushPapers);
+    };
+
+    contact.addEventListener("pointermove", onPointerMove, { passive: true });
+    return () => {
+
+      contact.removeEventListener("pointermove", onPointerMove);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+  const copyEmail = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(EMAIL);
+      } else {
+        const field = document.createElement("textarea");
+        field.value = EMAIL;
+        field.setAttribute("readonly", "");
+        field.style.position = "fixed";
+        field.style.opacity = "0";
+        document.body.appendChild(field);
+        field.select();
+        const copied = document.execCommand("copy");
+        field.remove();
+        if (!copied) throw new Error("copy failed");
+      }
+      setEmailStatus("이메일 주소가 복사되었습니다.");
+    } catch {
+      setEmailStatus("복사할 이메일: " + EMAIL);
+    }
+  };
   const goTo = (index: number) => {
     const st = trigger.current;
     if (!st) return;
@@ -185,10 +284,6 @@ export default function HorizontalStream() {
     });
   };
 
-  const copyEmail = async () => {
-    try { await navigator.clipboard.writeText(EMAIL); setEmailStatus(`이메일을 복사했습니다: ${EMAIL} (임시 주소)`); }
-    catch { setEmailStatus(`복사할 이메일: ${EMAIL} (임시 주소)`); }
-  };
 
   const focusProject = (project: Project, button: HTMLButtonElement) => {
     setActiveProject(project);
@@ -264,7 +359,27 @@ export default function HorizontalStream() {
             </button>)}</div>
           </section>
 
-          <section id="contact" className="zone contact" aria-labelledby="contact-heading"><div className="section-marker"><span>04 / CONTACT</span><span>THE NEXT CHAPTER IS OURS.</span></div><div className="contact-main"><span className="eyebrow">HAVE SOMETHING IN MIND?</span><h2 id="contact-heading">LET’S MAKE<br />SOMETHING<br /><span>REAL</span><span className="contact-arrow">↗</span></h2><div className="contact-actions"><button className="email-button" onClick={copyEmail}>SEND AN EMAIL <span>↗</span></button><span className="contact-note">좋은 대화에서 시작될 다음 이야기.</span></div><p className="email-status" role="status">{emailStatus}</p></div><div className="contact-footer"><span>© 2026 HAN RYUN HEE</span><div><span className="external-placeholder" aria-label="Instagram 링크 준비 중">INSTAGRAM ↗ <small>SOON</small></span><span className="external-placeholder" aria-label="Behance 링크 준비 중">BEHANCE ↗ <small>SOON</small></span></div><button onClick={() => goTo(0)}>BACK TO ORIGIN ↑</button></div></section>
+          <section ref={contactRef} id="contact" className="zone contact contact-collage" aria-label="마지막 포트폴리오 페이지">
+            <Image src="/images/contact-paper-texture.png" alt="" fill sizes="100vw" className="contact-paper-texture" />
+            <Image src="/images/contact-corner-paper.png" alt="" width={1122} height={1402} sizes="36vw" className="contact-corner-paper" />
+            <Image src="/images/contact-slogan.png" alt="From 0, To What's Next." width={746} height={400} sizes="22vw" className="contact-slogan" />
+            <Image src="/images/contact-hand.png" alt="" width={1086} height={1448} sizes="38vw" className="contact-hand" />
+            <Image src="/images/contact-timeline.png" alt="초등학생부터 대학생까지 이어지는 성장 과정" width={495} height={192} sizes="32vw" className="contact-timeline" />
+            <div className="contact-paper-collage" aria-hidden="true">
+              {contactPapers.map((paper, index) => (
+                <div key={paper.src} className={`contact-paper-piece contact-paper-piece-${index + 1}`} data-rotation={paper.rotation} style={{ transform: `rotate(${paper.rotation}deg)` }}>
+                  <Image src={paper.src} alt="" fill sizes="30vw" className="contact-paper-piece-image" />
+                </div>
+              ))}
+            </div>
+            <div className="contact-collage-copy">
+              <p>0에서 시작했기에,<br />없는 것에서 가능성을 만드는 법을 배웠습니다.</p>
+              <p>아이디어를 기획하고, 디자인하고, 직접 구현하며<br />새로운 가능성을 만들어갑니다.</p>
+              <p>다음 가능성은, 함께 만들어보고 싶습니다.</p>
+              <button type="button" className="contact-collage-email" data-email={EMAIL} aria-label={`${EMAIL} 이메일 주소 복사`} onClick={copyEmail}>SEND AN EMAIL <span>↗</span></button>
+              <span className="contact-collage-status" role="status">{emailStatus}</span>
+            </div>
+          </section>
         </div>
         <div className="origin-ball" aria-hidden="true"><Image src="/images/elementary-football.png" alt="" fill sizes="8vw" /></div>
         <div className="journey-actor" aria-hidden="true"><div className="actor-state actor-elementary"><div className="journey-child"><Image src="/images/elementary-girl.png" alt="" fill sizes="23vw" /></div><div className="actor-ball" /></div><div className="actor-state actor-middle"><div className="journey-person journey-middle"><Image src="/images/middle-student.png" alt="" fill sizes="22vw" /></div></div><div className="actor-state actor-high"><div className="journey-person journey-high"><Image src="/images/figma-odyssey/imgImage357.png" alt="" fill sizes="20vw" /></div></div><div className="actor-state actor-high-second"><div className="journey-person journey-high-second"><Image src="/images/high-student-2.png" alt="" fill sizes="20vw" /></div></div><div className="actor-state actor-university"><div className="journey-person journey-university"><Image src="/images/university-student.png" alt="" fill sizes="20vw" /></div></div></div>
@@ -274,6 +389,12 @@ export default function HorizontalStream() {
     {openedProject && <ProjectViewer project={openedProject} returnScrollY={viewerReturnY.current} onClose={() => { setOpenedProject(null); requestAnimationFrame(() => opener.current?.focus({ preventScroll: true })); }} />}
   </>;
 }
+
+
+
+
+
+
 
 
 
