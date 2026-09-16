@@ -236,7 +236,7 @@ button { border: 0; background: none; }
 .contact { position: relative; overflow: hidden; isolation: isolate; background: #F6F6F3; }
 .contact-paper-texture { z-index: 0; object-fit: cover; opacity: .46; mix-blend-mode: multiply; pointer-events: none; }
 .contact-corner-paper { position: absolute; z-index: 2; left: 0; bottom: 0; width: min(36vw, 690px); height: auto; object-fit: contain; object-position: left bottom; pointer-events: none; filter: drop-shadow(5px 0 7px rgb(45 43 37 / 12%)); }
-.contact-slogan { position: absolute; z-index: 3; left: 40%; top: 23%; width: min(22vw, 360px); height: auto; pointer-events: none; }
+.contact-slogan { position: absolute; z-index: 3; left: 50%; top: 23%; width: min(22vw, 360px); height: auto; transform: translateX(-50%); pointer-events: none; }
 .contact-hand { position: absolute; z-index: 4; right: -2px; top: max(-29vw, -556px); width: min(25.5vw, 490px); height: auto; transform: rotate(-90deg); transform-origin: 90% 92%; pointer-events: none; will-change: transform; animation: contact-hand-sketch 5.8s cubic-bezier(.45, .05, .3, .95) infinite; }
 .contact-timeline { position: absolute; z-index: 5; right: 3.2vw; bottom: calc(max(24px, env(safe-area-inset-bottom)) + 34px); width: min(31vw, 520px); height: auto; pointer-events: none; filter: drop-shadow(0 5px 8px rgb(41 40 36 / 8%)); }
 .contact-paper-collage { position: absolute; inset: 0; z-index: 7; pointer-events: none; }
@@ -255,7 +255,7 @@ button { border: 0; background: none; }
   43% { transform: rotate(-89.55deg) translate3d(-.22%, .1%, 0); }
   51% { transform: rotate(-90.25deg) translate3d(.12%, -.06%, 0); }
 }
-.contact-collage-copy { position: absolute; z-index: 5; left: 32%; top: 48%; width: min(40vw, 560px); color: #24251f; text-align: center; opacity: var(--copy-reveal, .62); transition: opacity .5s ease; }
+.contact-collage-copy { position: absolute; z-index: 5; left: 50%; top: 48%; width: min(40vw, 560px); color: #24251f; text-align: center; opacity: var(--copy-reveal, .62); transform: translateX(-50%); transition: opacity .5s ease; }
 .contact-collage-copy p { margin: 0 0 18px; font-size: clamp(11px, .95vw, 16px); line-height: 1.75; font-weight: 500; word-break: keep-all; }
 .contact-collage-copy p:last-of-type { margin-bottom: 25px; }
 .contact-collage-email { display: inline-flex; align-items: center; justify-content: center; gap: 42px; min-width: 180px; padding: 13px 20px; border: 1px solid #373932; border-radius: 999px; background: rgb(246 246 243 / 76%); font-size: 9px; letter-spacing: .06em; transition: background .25s ease, color .25s ease, transform .25s ease; }
@@ -539,6 +539,7 @@ button { border: 0; background: none; }
 @media (prefers-reduced-motion: reduce) {
   .figma-panorama-layer[class*="figma-motion-"] { animation: none; rotate: none; translate: none; filter: none; opacity: 1; }
 }
+
 
 
 
